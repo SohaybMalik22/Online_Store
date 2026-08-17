@@ -1,26 +1,324 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ------------------------------------------------------------------
+   Sonia Zari Boutique — design tokens
+   Warm ivory base, wine for depth, gold for every accent that matters.
+------------------------------------------------------------------ */
+@theme {
+  --color-ivory: #faf7f2;
+  --color-ivory-deep: #f3ede4;
+  --color-blush: #f3d9df;
+  --color-blush-soft: #faeef1;
+  --color-wine: #7b1e3a;
+  --color-wine-deep: #5a1229;
+  --color-gold: #c9a24b;
+  --color-gold-soft: #e2c988;
+  --color-ink: #2b2b2b;
+  --color-ink-soft: #6b625d;
+  --color-line: #e4dcd1;
+
+  --font-display: var(--font-playfair), "Times New Roman", serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-silk: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ivory);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-wine);
+  color: var(--color-ivory);
+}
+
+/* Slim, on-brand scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ivory-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: #d8ccbb;
+  border-radius: 99px;
+  border: 2px solid var(--color-ivory-deep);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold);
+}
+
+/* ------------------------------------------------------------------
+   Typography helpers
+------------------------------------------------------------------ */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.eyebrow {
+  font-size: 0.6875rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Thin gold rule with a diamond in the middle — the boutique motif */
+.rule-motif {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.rule-motif::before,
+.rule-motif::after {
+  content: "";
+  height: 1px;
+  width: clamp(1.5rem, 8vw, 4rem);
+  background: linear-gradient(
+    to var(--rule-dir, right),
+    transparent,
+    var(--color-gold)
+  );
+}
+.rule-motif::after {
+  --rule-dir: left;
+}
+
+/* ------------------------------------------------------------------
+   Skeleton / image loading
+------------------------------------------------------------------ */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(100deg, #efe8dd 30%, #f7f2ea 50%, #efe8dd 70%);
+  background-size: 220% 100%;
+  animation: shimmer 1.4s var(--ease-silk) infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 180% 0;
+  }
+  to {
+    background-position: -60% 0;
+  }
+}
+
+.img-fade {
+  opacity: 0;
+  transform: scale(1.03);
+  transition:
+    opacity 0.7s var(--ease-silk),
+    transform 0.9s var(--ease-silk);
+}
+.img-fade[data-loaded="true"] {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ------------------------------------------------------------------
+   Scroll reveal
+------------------------------------------------------------------ */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.85s var(--ease-silk),
+    transform 0.85s var(--ease-silk);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ------------------------------------------------------------------
+   Hero — crossfade + slow Ken Burns drift
+------------------------------------------------------------------ */
+.hero-slide {
+  opacity: 0;
+  transition: opacity 1.5s var(--ease-silk);
+}
+.hero-slide[data-active="true"] {
+  opacity: 1;
+}
+.hero-media {
+  transform: scale(1.02);
+  /* Covers the exit: when the slide deactivates the animation is dropped and
+     the zoom eases back instead of snapping. */
+  transition: transform 1.5s var(--ease-silk);
+}
+.hero-slide[data-active="true"] .hero-media {
+  animation: kenburns 7.5s linear forwards;
+}
+
+@keyframes kenburns {
+  from {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.13) translate3d(0, -1.2%, 0);
+  }
+}
+
+/* Copy lives inside its slide, so it crossfades with the photo instead of
+   blinking out on every change. `both` holds the hidden state through the
+   stagger delay; once played it rests visible and fades out with the slide. */
+.hero-line {
+  opacity: 1;
+}
+.hero-slide[data-active="true"] .hero-line {
+  animation: rise 1s var(--ease-silk) both;
+  animation-delay: var(--line-delay, 0ms);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 1;
+  }
+}
+.animate-bob {
+  animation: bob 2.1s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+.animate-marquee {
+  animation: marquee 38s linear infinite;
+}
+
+/* ------------------------------------------------------------------
+   Buttons
+------------------------------------------------------------------ */
+.btn-gold {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  overflow: hidden;
+  background: var(--color-gold);
+  color: #fff;
+  padding: 0.9rem 2.1rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition:
+    transform 0.35s var(--ease-silk),
+    box-shadow 0.35s var(--ease-silk);
+}
+.btn-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-wine);
+  transform: translateY(101%);
+  transition: transform 0.45s var(--ease-silk);
+  z-index: -1;
+}
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -14px rgb(123 30 58 / 0.55);
+}
+.btn-gold:hover::after {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid var(--color-gold);
+  color: var(--color-wine);
+  padding: 0.85rem 2rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition:
+    background 0.35s var(--ease-silk),
+    color 0.35s var(--ease-silk);
+}
+.btn-outline:hover {
+  background: var(--color-wine);
+  border-color: var(--color-wine);
+  color: #fff;
+}
+
+/* Underline that grows from the left — nav + text links */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s var(--ease-silk);
+}
+.link-underline:hover::after,
+.link-underline[data-active="true"]::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Reduced-motion safety net (the no-JS case is a <noscript> style in layout) */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .reveal,
+  .hero-line {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
